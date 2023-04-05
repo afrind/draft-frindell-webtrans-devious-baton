@@ -8,19 +8,19 @@ number:
 date:
 consensus: true
 v: 3
-area: AREA
-workgroup: WG Working Group
+area: "Applications and Real-Time"
+workgroup: "WebTransport"
 keyword:
  - next generation
  - unicorn
  - sparkling distributed ledger
 venue:
-  group: WG
-  type: Working Group
-  mail: WG@example.com
-  arch: https://example.com/WG
-  github: USER/REPO
-  latest: https://example.com/LATEST
+  group: "WebTransport"
+  type: "Working Group"
+  mail: "webtransport@ietf.org"
+  arch: "https://mailarchive.ietf.org/arch/browse/webtransport/"
+  github: "afrind/draft-frindell-webtrans-devious-baton"
+  latest: "https://afrind.github.io/draft-frindell-webtrans-devious-baton/draft-frindell-webtrans-devious-baton.html"
 
 author:
  -
