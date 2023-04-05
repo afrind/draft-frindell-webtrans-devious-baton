@@ -11,9 +11,7 @@ v: 3
 area: "Applications and Real-Time"
 workgroup: "WebTransport"
 keyword:
- - next generation
- - unicorn
- - sparkling distributed ledger
+ - WebTransport
 venue:
   group: "WebTransport"
   type: "Working Group"
@@ -24,9 +22,9 @@ venue:
 
 author:
  -
-    fullname: Your Name Here
-    organization: Your Organization Here
-    email: "afrind@users.noreply.github.com"
+    fullname: Alan Frindell
+    organization: Meta
+    email: "afrind@meta.com"
 
 normative:
 
