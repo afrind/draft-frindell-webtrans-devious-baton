@@ -86,25 +86,32 @@ requires the server to interpret that as the default value.
 
 The server MUST support the following optional query parameters:
 
-* version - an integer specifying the draft version of Devious Baton the client
-  intends to use
+* `version` - an integer specifying the draft version of Devious Baton the
+  client intends to use
 
 If the version is invalid or the server does not support the specified version,
 it MUST reject the WebTransport session with a 4xx status code.  The default
 value is 0.
 
-* baton - an integer between 0 and 255, inclusive, which the server will use as
-  the initial baton value
+* `baton` - an integer between 1 and 255, inclusive, which the server will use
+  as the initial baton value
 
 If the baton value is invalid, the server MUST reject the WebTransport session
 with a 4xx status code.  There is no default - if unspecified the server chooses
-a random baton value.
+a random baton value between 1 and 255, inclusive.
 
-* count - an integer specifying how many batons will be sent in parallel
+If `count` is greater than 1, the baton parameter MAY be specified more than
+once to set the initial value for each baton.  If the number of baton parameters
+is greater than `count`, the server SHOULD ignore the extra parameters.  If the
+number of baton parameters is less than `count`, the server chooses a random
+baton value between 1 and 255, inclusive, for each baton without a value.
+
+* `count` - a positive integer specifying how many batons will be sent in
+  parallel
 
 The default value is 1.  If the client asks for more batons than the server is
 capable of sending, the server MUST reject the WebTransport session with a 4xx
-status code
+status code.
 
 ## Protocol Version
 
@@ -126,12 +133,12 @@ closes it.
 When either endpoint receives a Baton message on a stream, it takes the
 following actions:
 
-* If the value of the baton is 0, the endpoint MUST close the WebTransport
-  session with no error
+* If the value of the baton is 0, the endpoint decrements the number of active
+  batons by one.
 * If the value of the baton is not 0, the endpoint MUST send a new Baton message
   with a baton value equal to the incoming baton value + 1 modulo 256.  The new
   Baton message is sent on a stream, decribed below.
-* After sending the Baton message, the endpoint MUST close the stream
+* After sending the Baton message, the endpoint MUST close the stream.
 
 The endpoint selects the outgoing Baton message stream based on how the incoming
 Baton message arrived.
@@ -143,6 +150,9 @@ Baton message arrived.
 * If the Baton message arrived on a self-initiated bidirectional stream, the
   endpoint opens a unidirectional stream and sends the outgoing Baton message on
   it.
+
+If an endpoint receives a baton message with an unexpected value, it MAY close
+the WebTransport session with the SUS session error code.
 
 If the endpoint has insufficient stream credit to open the correct type of
 stream, it MUST close the WebTransport session with the DA_YAMN
@@ -183,6 +193,12 @@ single datagram.
 
 ## Session Closure
 
+Each endpoint tracks the number of active batons.  It is initally equal to the
+client's `count` parameter.  Each time a baton exchange completes or is reset,
+the number of active batons is decreased by 1. When the number of active batons
+reaches 0 and at least one baton exchange terminated when the baton reached 0,
+the endpoint MUST close the WebTransport session with no error.
+
 To close a Devious Baton Session with an error, the endpoint
 initiating the close sends a CLOSE_WEBTRANSPORT_SESSION capsule with
 the specified session error code.  To close the session without an error, the
@@ -195,12 +211,13 @@ incomplete Baton message, it MUST close the WebTransport session with the BRUH
 session error code.
 
 Either endpoint can send a STOP_SENDING or RESET_STREAM on an open stream.
-STOP_SENDING MUST use the IDC stream error code. Upon receipt of a STOP_SENDING on a
-stream, or a RESET_STREAM on a bidirectional stream, the endpoint MUST send a
-RESET_STREAM for that stream with the WHATEVER stream error code unless it has already
-closed the stream.  A RESET_STREAM sent spontaneously MUST use the I_LIED
-stream error code.  If an endpoint detects that all baton streams have been reset, it
-MUST close the WebTransport session with the GAME_OVER session error code.
+STOP_SENDING MUST use the IDC stream error code. Upon receipt of a STOP_SENDING
+on a stream, or a RESET_STREAM on a bidirectional stream, the endpoint MUST send
+a RESET_STREAM for that stream with the WHATEVER stream error code unless it has
+already closed the stream.  A RESET_STREAM sent spontaneously MUST use the
+I_LIED stream error code.  If an endpoint detects that all baton streams have
+been reset, it MUST close the WebTransport session with the GAME_OVER session
+error code.
 
 If an endpoint gets tired of waiting for the next Baton message, it MAY close
 the WebTransport session with the BORED error code.
@@ -226,6 +243,7 @@ The following error codes can be sent in the CLOSE_WEBTRANSPORT_SESSION capsule.
 | BRUH      |  0x02  | Received a malformed Baton message  |
 | GAME_OVER |  0x03  | All baton streams have been reset   |
 | BORED     |  0x04  | Got tired of waiting for the next message |
+| SUS       |  0x05  | Received an unexpected Baton message |
 {: title="Session Error Codes"}
 
 # Security Considerations
