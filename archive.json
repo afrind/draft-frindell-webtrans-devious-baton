@@ -1,0 +1,190 @@
+{
+  "magic": "E!vIA5L86J2I",
+  "timestamp": "2023-04-25T00:46:25.221905+00:00",
+  "repo": "afrind/draft-frindell-webtrans-devious-baton",
+  "labels": [
+    {
+      "name": "bug",
+      "description": "Something isn't working",
+      "color": "d73a4a"
+    },
+    {
+      "name": "documentation",
+      "description": "Improvements or additions to documentation",
+      "color": "0075ca"
+    },
+    {
+      "name": "duplicate",
+      "description": "This issue or pull request already exists",
+      "color": "cfd3d7"
+    },
+    {
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "name": "good first issue",
+      "description": "Good for newcomers",
+      "color": "7057ff"
+    },
+    {
+      "name": "help wanted",
+      "description": "Extra attention is needed",
+      "color": "008672"
+    },
+    {
+      "name": "invalid",
+      "description": "This doesn't seem right",
+      "color": "e4e669"
+    },
+    {
+      "name": "question",
+      "description": "Further information is requested",
+      "color": "d876e3"
+    },
+    {
+      "name": "wontfix",
+      "description": "This will not be worked on",
+      "color": "ffffff"
+    }
+  ],
+  "issues": [
+    {
+      "number": 1,
+      "id": "I_kwDOJTKV885jPywl",
+      "title": "Should the stream error and session error be in different number spaces?",
+      "url": "https://github.com/afrind/draft-frindell-webtrans-devious-baton/issues/1",
+      "state": "CLOSED",
+      "author": "huitema",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "The draft defines \"stream errors\" and \"application errors\":\r\n\r\nStream error  | Code | Description\r\n-- | -- | --\r\nIDC | 0x01 | I don't care about this stream\r\n\r\nSession error  | Code | Description\r\n-- | -- | --\r\nDA_YAMN | 0x01 | There is insufficient stream credit to continue the protocol\r\n\r\nIn QUIC, the parameters of both \"RESET\" and \"APPLICATION CLOSE\" are in the same application error space -- which would make IDC and DA_YAMN to be the same code. Is that expected?\r\n",
+      "createdAt": "2023-04-12T18:58:00Z",
+      "updatedAt": "2023-04-17T22:00:13Z",
+      "closedAt": "2023-04-17T22:00:12Z",
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "OWNER",
+          "body": "That was the intention.  At first I had separate codes, but realized that the stream error codes didn't make sense in the session context and vice versa.  Rather than add language to make it a protocol error to use the wrong error code, I collapsed the number space so it is not possible.\r\n\r\nI'll close this but please reopen if there's a problem with this design.",
+          "createdAt": "2023-04-17T22:00:12Z",
+          "updatedAt": "2023-04-17T22:00:12Z"
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "id": "I_kwDOJTKV885jjQ2A",
+      "title": "How is are the parallel batons supposed to run?",
+      "url": "https://github.com/afrind/draft-frindell-webtrans-devious-baton/issues/2",
+      "state": "OPEN",
+      "author": "huitema",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "The draft says that servers should handle the parameter:\r\n\r\n* _count - an integer specifying how many batons will be sent in parallel_\r\n\r\nAnd specify that _\"The default value is 1. If the client asks for more batons than the server is capable of sending, the server MUST reject the WebTransport session with a 4xx status code.\"_\r\n\r\nOK, but the devious baton draft supposes that each end does some checks, such as verify that the baton was correctly increased by the peer. If several batons are sent in parallel, these comparisons require a tiny bit of context. My simple proposal is to have the node maintain N baton contexts in parallel. On incoming baton, they find the first available context for which the baton matches the expected value, and run with that. If no context matches, then they detect an error.\r\n\r\nThen there is the question of whether all parallel batons should be identical. The draft specifies the parameter:\r\n\r\n_* baton - an integer between 0 and 255, inclusive, which the server will use as the initial baton value_\r\n\r\nThat's kind of a clue: only one baton value, same for all parallel versions. But is that what we expect? \r\n\r\nAnd then there is the question of termination. Exit if zeroed baton is a fine rule, but is it expected to terminate all parallel runs?\r\n\r\nIn any case, I would love to see a \"parallel batons\" section.\r\n",
+      "createdAt": "2023-04-16T23:13:24Z",
+      "updatedAt": "2023-04-18T01:45:47Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "afrind",
+          "authorAssociation": "OWNER",
+          "body": "Great feedback. I'll add a section.\r\n\r\nI hadn't thought about verifying the peer had increased the baton correctly and was assuming the peer would always play fair.  Sounds like I ought to add text about handling unexpected baton messages too.\r\n\r\nIf the `baton` param isn't supplied, and `count` is > 1, I was thinking the server would pick `count` different baton values, and the first one to reach 0 would terminate the session.  If `baton` is supplied, then all sessions could have the same value.  I don't know if the complexity to specify multiple starting baton values from the client is warranted, but maybe it is.\r\n\r\nMaybe just send the `baton` param more than once? If `count` is greater than `count(baton)`, server picks random values for the unspecified ones.  If `count` is smaller, then 400?",
+          "createdAt": "2023-04-17T22:11:07Z",
+          "updatedAt": "2023-04-17T22:11:07Z"
+        },
+        {
+          "author": "huitema",
+          "authorAssociation": "NONE",
+          "body": "I would like some behavior that I can program and verify in tests. \"Same baton\" is good enough, and specifying the baton removes the randomness in test results. Not specifying the baton allows for different random values in each parallel run, which is OK if you want random tests. Of course, I could also just fix the random seed in the tests, which makes the behavior somewhat predictable.\r\n\r\nThere is some remaining randomness in the \"first to zero\" behavior, even with a single baton value, because one baton run may very well run ahead of the others -- by chance or by flow control. That means I could not do tests such as \"how many batons did I see\" or \"how many bytes did the client receive\". The only way I could avoid that is by mandating something like \"do no send 0 on any stream unless it can be sent by all streams\".\r\n\r\nBut you have time to decide something. Before that, I need to improve my minimal H3 implementation to accept URL query parameters...",
+          "createdAt": "2023-04-18T01:45:47Z",
+          "updatedAt": "2023-04-18T01:45:47Z"
+        }
+      ]
+    }
+  ],
+  "pulls": [
+    {
+      "number": 3,
+      "id": "PR_kwDOJTKV885Onnze",
+      "title": "Better explain parallel batons",
+      "url": "https://github.com/afrind/draft-frindell-webtrans-devious-baton/pull/3",
+      "state": "OPEN",
+      "author": "afrind",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "1. baton param can be specified multiple times to seed multiple baton exchanges\r\n2. The session closes when all baton exchanges have completed\r\n3. GAME_OVER is used when all exchanges were reset.  If at least one finished normally, close with no error.\r\n4. Endpoint can send `SUS` error code when receiving an unexpected baton message.\r\n\r\nFixes: #2",
+      "createdAt": "2023-04-18T21:53:46Z",
+      "updatedAt": "2023-04-24T22:48:00Z",
+      "baseRepository": "afrind/draft-frindell-webtrans-devious-baton",
+      "baseRefName": "main",
+      "baseRefOid": "c8013209f2cb4cca2931a8620e96dc42f89f30eb",
+      "headRepository": "afrind/draft-frindell-webtrans-devious-baton",
+      "headRefName": "parallel-batons",
+      "headRefOid": "8469d6ad5c31b31bd09ddf2b92cbe56b87fe0185",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOJTKV885S6Mtw",
+          "commit": {
+            "abbreviatedOid": "5e81aa1"
+          },
+          "author": "afrind",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2023-04-18T21:55:44Z",
+          "updatedAt": "2023-04-18T21:55:45Z",
+          "comments": [
+            {
+              "originalPosition": 75,
+              "body": "I realized this is a bit vague -- only an endpoint that reaches an active count of 0 when receiving a message or RESET_STREAM should close the session.  Even with that restriction, there's still a possible race condition where both endpoints reach 0 simultaneously as a result of received messages.\r\n\r\nThoughts?\r\n\r\nAlso curious if it's worth maintaining the distinction between close with no error and GAME_OVER.",
+              "createdAt": "2023-04-18T21:55:44Z",
+              "updatedAt": "2023-04-18T21:55:45Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOJTKV885TQcXV",
+          "commit": {
+            "abbreviatedOid": "5e81aa1"
+          },
+          "author": "huitema",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "Main comment: I really would prefer if the \"queries\" specified at most one baton value. If I want determinsistic, I set that value, the same for all \"lanes\". If I don't set it, there is a different random baton for each lane.",
+          "createdAt": "2023-04-23T01:39:48Z",
+          "updatedAt": "2023-04-23T01:57:46Z",
+          "comments": [
+            {
+              "originalPosition": 53,
+              "body": "That's not 100% true. or rather it depends what you mean by \"close\". Sending the FIN bit, yes, always. But if the stream is a BIDIR stream opened by the local node, it is only closed in the sending direction, since the other direction will be used to receive the next relay by the peer.",
+              "createdAt": "2023-04-23T01:39:49Z",
+              "updatedAt": "2023-04-23T01:57:46Z"
+            },
+            {
+              "originalPosition": 29,
+              "body": "Sorry, but that feels like gratuitous complexity. Having just one baton and running a copy of the same baton in all lanes is much simpler. In particular, consider the \"receiving first baton\" scenario. If there is a single value, then the receiver can do a check, \"is this what is expected\". Otherwise, it is \"does it look plausible\", but that requires looking at all \"lanes\" see so far, deciding whether this is possibly one of the random lanes, etc. We are specifying a test tool, so we should keep it simple!\r\n\r\nI would much prefer \"same initial value in all baton lanes\".",
+              "createdAt": "2023-04-23T01:49:39Z",
+              "updatedAt": "2023-04-23T01:57:46Z"
+            },
+            {
+              "originalPosition": 75,
+              "body": "My initial implementation was just closing everything on first baton to reach zero, but I like the countdown better -- more deterministic when running tests.\r\n\r\nThe spec says that \"0\" can be sent at any moment. So it should be fine if the client has seen 15 turns of the baton already, decides that's enough, and sends the next baton as \"0\". So it is not just reset.\r\n\r\nI dislike assigning special meaning to reset, because of the inherent race condition between \"receive FIN\" and \"receive RESET\".",
+              "createdAt": "2023-04-23T01:56:10Z",
+              "updatedAt": "2023-04-23T01:57:46Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
