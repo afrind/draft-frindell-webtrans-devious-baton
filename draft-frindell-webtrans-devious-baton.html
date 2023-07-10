@@ -11,24 +11,22 @@
 functionality provided by WebTransport.  The protocol passes a "baton" between
 endpoints, using both unidirectional and bidirectional streams. 
     ' name="description">
-<meta content="xml2rfc 3.17.0" name="generator">
+<meta content="xml2rfc 3.17.4" name="generator">
 <meta content="WebTransport" name="keyword">
 <meta content="draft-frindell-webtrans-devious-baton-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.17.0
-    Python 3.10.10
-    appdirs 1.4.4
+  xml2rfc 3.17.4
+    Python 3.11.4
     ConfigArgParse 1.5.3
-    google-i18n-address 2.5.2
-    html5lib 1.1
+    google-i18n-address 3.1.0
     intervaltree 3.1.0
     Jinja2 3.1.2
     lxml 4.9.2
-    MarkupSafe 2.1.1
+    platformdirs 3.8.0
     pycountry 22.3.5
     PyYAML 6.0
-    requests 2.28.1
-    setuptools 65.6.0
+    requests 2.31.0
+    setuptools 67.7.2
     six 1.16.0
     wcwidth 0.2.6
 -->
@@ -612,6 +610,7 @@ sub, sup {
   clear: left;
   float: left;
   text-align: right;
+  margin-right: 1ch;
 }
 #identifiers dd {
   margin: 0;
@@ -663,7 +662,8 @@ sub, sup {
 .references dt {
   text-align: right;
   font-weight: bold;
-  min-width: 7em;
+  min-width: 10ch;
+  margin-right: 1.5ch;
 }
 .references dt:target::before {
   content: "⇒";
@@ -671,7 +671,7 @@ sub, sup {
   margin: 0 10px 0 -25px;
 }
 .references dd {
-  margin-left: 8em !important;
+  margin-left: 12ch !important;
   overflow: auto;
 }
 
@@ -1049,11 +1049,11 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">devious-baton</td>
-<td class="right">April 2023</td>
+<td class="right">July 2023</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Frindell</td>
-<td class="center">Expires 8 October 2023</td>
+<td class="center">Expires 11 January 2024</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1066,12 +1066,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-frindell-webtrans-devious-baton-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2023-04-06" class="published">6 April 2023</time>
+<time datetime="2023-07-10" class="published">10 July 2023</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2023-10-08">8 October 2023</time></dd>
+<dd class="expires"><time datetime="2024-01-11">11 January 2024</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1123,7 +1123,7 @@ endpoints, using both unidirectional and bidirectional streams.<a href="#section
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 8 October 2023.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 11 January 2024.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1283,28 +1283,32 @@ establishment URL. Sending parameters is optional but omission of a parameter
 requires the server to interpret that as the default value.<a href="#section-3.1-1" class="pilcrow">¶</a></p>
 <p id="section-3.1-2">The server <span class="bcp14">MUST</span> support the following optional query parameters:<a href="#section-3.1-2" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-3.1-3.1">version - an integer specifying the draft version of Devious Baton the client
-intends to use<a href="#section-3.1-3.1" class="pilcrow">¶</a>
+<li class="normal" id="section-3.1-3.1">
+            <code>version</code> - an integer specifying the draft version of Devious Baton the
+client intends to use<a href="#section-3.1-3.1" class="pilcrow">¶</a>
 </li>
         </ul>
 <p id="section-3.1-4">If the version is invalid or the server does not support the specified version,
 it <span class="bcp14">MUST</span> reject the WebTransport session with a 4xx status code.  The default
 value is 0.<a href="#section-3.1-4" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-3.1-5.1">baton - an integer between 0 and 255, inclusive, which the server will use as
-the initial baton value<a href="#section-3.1-5.1" class="pilcrow">¶</a>
+<li class="normal" id="section-3.1-5.1">
+            <code>baton</code> - an integer between 1 and 255, inclusive, which the server will use
+as the initial baton value for all batons.<a href="#section-3.1-5.1" class="pilcrow">¶</a>
 </li>
         </ul>
 <p id="section-3.1-6">If the baton value is invalid, the server <span class="bcp14">MUST</span> reject the WebTransport session
 with a 4xx status code.  There is no default - if unspecified the server chooses
-a random baton value.<a href="#section-3.1-6" class="pilcrow">¶</a></p>
+a random baton value between 1 and 255, inclusive.<a href="#section-3.1-6" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-3.1-7.1">count - an integer specifying how many batons will be sent in parallel<a href="#section-3.1-7.1" class="pilcrow">¶</a>
+<li class="normal" id="section-3.1-7.1">
+            <code>count</code> - a positive integer specifying how many batons will be sent in
+parallel<a href="#section-3.1-7.1" class="pilcrow">¶</a>
 </li>
         </ul>
 <p id="section-3.1-8">The default value is 1.  If the client asks for more batons than the server is
 capable of sending, the server <span class="bcp14">MUST</span> reject the WebTransport session with a 4xx
-status code<a href="#section-3.1-8" class="pilcrow">¶</a></p>
+status code.<a href="#section-3.1-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="protocol-version">
@@ -1343,14 +1347,14 @@ closes it.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
 <p id="section-4.2-1">When either endpoint receives a Baton message on a stream, it takes the
 following actions:<a href="#section-4.2-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.2-2.1">If the value of the baton is 0, the endpoint <span class="bcp14">MUST</span> close the WebTransport
-session with no error<a href="#section-4.2-2.1" class="pilcrow">¶</a>
+<li class="normal" id="section-4.2-2.1">If the value of the baton is 0, the endpoint decrements the number of active
+batons by one.<a href="#section-4.2-2.1" class="pilcrow">¶</a>
 </li>
           <li class="normal" id="section-4.2-2.2">If the value of the baton is not 0, the endpoint <span class="bcp14">MUST</span> send a new Baton message
 with a baton value equal to the incoming baton value + 1 modulo 256.  The new
 Baton message is sent on a stream, decribed below.<a href="#section-4.2-2.2" class="pilcrow">¶</a>
 </li>
-          <li class="normal" id="section-4.2-2.3">After sending the Baton message, the endpoint <span class="bcp14">MUST</span> close the stream<a href="#section-4.2-2.3" class="pilcrow">¶</a>
+          <li class="normal" id="section-4.2-2.3">After sending the Baton message, the endpoint <span class="bcp14">MUST</span> send a FIN on the stream.<a href="#section-4.2-2.3" class="pilcrow">¶</a>
 </li>
         </ul>
 <p id="section-4.2-3">The endpoint selects the outgoing Baton message stream based on how the incoming
@@ -1367,13 +1371,15 @@ endpoint opens a unidirectional stream and sends the outgoing Baton message on
 it.<a href="#section-4.2-4.3" class="pilcrow">¶</a>
 </li>
         </ul>
-<p id="section-4.2-5">If the endpoint has insufficient stream credit to open the correct type of
+<p id="section-4.2-5">If an endpoint receives a baton message with an unexpected value, it <span class="bcp14">MAY</span> close
+the WebTransport session with the SUS session error code.<a href="#section-4.2-5" class="pilcrow">¶</a></p>
+<p id="section-4.2-6">If the endpoint has insufficient stream credit to open the correct type of
 stream, it <span class="bcp14">MUST</span> close the WebTransport session with the DA_YAMN
-session error code.<a href="#section-4.2-5" class="pilcrow">¶</a></p>
-<p id="section-4.2-6">If the endpoint has insufficient flow control credit to send the Baton message,
+session error code.<a href="#section-4.2-6" class="pilcrow">¶</a></p>
+<p id="section-4.2-7">If the endpoint has insufficient flow control credit to send the Baton message,
 it <span class="bcp14">SHOULD</span> send as much as limits allow, and wait for additional credit.  The
 endpoint <span class="bcp14">SHOULD</span> close the WebTransport session with the BORED session error code
-if the peer takes too long to grant credit.<a href="#section-4.2-6" class="pilcrow">¶</a></p>
+if the peer takes too long to grant credit.<a href="#section-4.2-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="baton-message">
@@ -1417,10 +1423,14 @@ single datagram.<a href="#section-4.4-1" class="pilcrow">¶</a></p>
         <h3 id="name-session-closure">
 <a href="#section-4.5" class="section-number selfRef">4.5. </a><a href="#name-session-closure" class="section-name selfRef">Session Closure</a>
         </h3>
-<p id="section-4.5-1">To close a Devious Baton Session with an error, the endpoint
+<p id="section-4.5-1">Each endpoint tracks the number of active batons.  It is initally equal to the
+client's <code>count</code> parameter.  Each time a baton exchange completes or is reset,
+the number of active batons is decreased by 1. When the number of active batons
+reaches 0, the endpoint <span class="bcp14">MUST</span> close the WebTransport session with no error.<a href="#section-4.5-1" class="pilcrow">¶</a></p>
+<p id="section-4.5-2">To close a Devious Baton Session with an error, the endpoint
 initiating the close sends a CLOSE_WEBTRANSPORT_SESSION capsule with
 the specified session error code.  To close the session without an error, the
-endpoint initiating the close sends a FIN on the CONNECT stream.<a href="#section-4.5-1" class="pilcrow">¶</a></p>
+endpoint initiating the close sends a FIN on the CONNECT stream.<a href="#section-4.5-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="error-handling">
@@ -1432,12 +1442,11 @@ endpoint initiating the close sends a FIN on the CONNECT stream.<a href="#sectio
 incomplete Baton message, it <span class="bcp14">MUST</span> close the WebTransport session with the BRUH
 session error code.<a href="#section-4.6-1" class="pilcrow">¶</a></p>
 <p id="section-4.6-2">Either endpoint can send a STOP_SENDING or RESET_STREAM on an open stream.
-STOP_SENDING <span class="bcp14">MUST</span> use the IDC stream error code. Upon receipt of a STOP_SENDING on a
-stream, or a RESET_STREAM on a bidirectional stream, the endpoint <span class="bcp14">MUST</span> send a
-RESET_STREAM for that stream with the WHATEVER stream error code unless it has already
-closed the stream.  A RESET_STREAM sent spontaneously <span class="bcp14">MUST</span> use the I_LIED
-stream error code.  If an endpoint detects that all baton streams have been reset, it
-<span class="bcp14">MUST</span> close the WebTransport session with the GAME_OVER session error code.<a href="#section-4.6-2" class="pilcrow">¶</a></p>
+STOP_SENDING <span class="bcp14">MUST</span> use the IDC stream error code. Upon receipt of a STOP_SENDING
+on a stream, or a RESET_STREAM on a bidirectional stream, the endpoint <span class="bcp14">MUST</span> send
+a RESET_STREAM for that stream with the WHATEVER stream error code unless it has
+already closed the stream.  A RESET_STREAM sent spontaneously <span class="bcp14">MUST</span> use the
+I_LIED stream error code.<a href="#section-4.6-2" class="pilcrow">¶</a></p>
 <p id="section-4.6-3">If an endpoint gets tired of waiting for the next Baton message, it <span class="bcp14">MAY</span> close
 the WebTransport session with the BORED error code.<a href="#section-4.6-3" class="pilcrow">¶</a></p>
 <div id="stream-error-codes">
@@ -1508,9 +1517,9 @@ the WebTransport session with the BORED error code.<a href="#section-4.6-3" clas
                 <td class="text-left" rowspan="1" colspan="1">Received a malformed Baton message</td>
               </tr>
               <tr>
-                <td class="text-left" rowspan="1" colspan="1">GAME_OVER</td>
+                <td class="text-left" rowspan="1" colspan="1">SUS</td>
                 <td class="text-center" rowspan="1" colspan="1">0x03</td>
-                <td class="text-left" rowspan="1" colspan="1">All baton streams have been reset</td>
+                <td class="text-left" rowspan="1" colspan="1">Received an unexpected Baton message</td>
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">BORED</td>
